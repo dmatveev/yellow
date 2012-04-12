@@ -84,6 +84,7 @@ parseTree s = case parse parseForm "" s of
 nil :: Form
 nil = BooleanLiteral False
 
+
 numeric :: Form -> Either String Double
 numeric (NumericLiteral i) = return i
 numeric _                  = Left "number expected"

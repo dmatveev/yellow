@@ -16,20 +16,19 @@ eval' s = do
 
     
 evalSExpr :: Operation -> [Form] -> Either String Form
-evalSExpr op args =
-  case op of
-    "+"    -> evalArith (+) args
-    "-"    -> evalArith (-) args
-    "*"    -> evalArith (*) args
+evalSExpr op = case op of
+    "+"    -> evalArith (+)
+    "-"    -> evalArith (-)
+    "*"    -> evalArith (*)
     
-    "/"    -> evalBinary evalDiv   args
-    "="    -> evalBinary evalEqual args
+    "/"    -> evalBinary evalDiv
+    "="    -> evalBinary evalEqual
     
-    "if"   -> evalIf args
+    "if"   -> evalIf
     
-    "cons" -> evalBinary evalCons args
-    "car"  -> evalUnary  evalCar args
-    "cdr"  -> evalUnary  evalCdr args
+    "cons" -> evalBinary evalCons
+    "car"  -> evalUnary  evalCar
+    "cdr"  -> evalUnary  evalCdr
 
 
 evalArith :: (Double -> Double -> Double) -> [Form] -> Either String Form
