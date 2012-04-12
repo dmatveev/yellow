@@ -11,6 +11,7 @@ data Form = Symbol String
           | NumericLiteral Double
           | BooleanLiteral Bool
           | SExpr Operation [Form]
+          | Cons Form Form
             deriving (Eq, Show)
                      
 
@@ -86,4 +87,8 @@ nil = BooleanLiteral False
 numeric :: Form -> Either String Double
 numeric (NumericLiteral i) = return i
 numeric _                  = Left "number expected"
-  
+
+
+cons :: Form -> Either String (Form, Form)
+cons (Cons h t) = return $ (h, t)
+cons _ = Left "cons expected"

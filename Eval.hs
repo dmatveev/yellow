@@ -13,7 +13,7 @@ eval' :: String -> Either String Form
 eval' s = do
   tree <- parseTree s
   eval tree
-  
+
     
 evalSExpr :: Operation -> [Form] -> Either String Form
 evalSExpr op args =
@@ -26,6 +26,10 @@ evalSExpr op args =
     "="    -> evalBinary evalEqual args
     
     "if"   -> evalIf args
+    
+    "cons" -> evalBinary evalCons args
+    "car"  -> evalUnary  evalCar args
+    "cdr"  -> evalUnary  evalCdr args
 
 
 evalArith :: (Double -> Double -> Double) -> [Form] -> Either String Form
@@ -39,11 +43,19 @@ evalArith f (arg : args) = do
   return $ NumericLiteral $ f left right
 
 
+
+evalUnary :: (Form -> Either String Form)
+          -> [Form]
+          -> Either String Form
+evalUnary e (a:[]) = e a             
+evalUnary _ _      = wrongNumberOfArgs
+
+
 evalBinary :: (Form -> Form -> Either String Form)
            -> [Form]
            -> Either String Form
-evalBinary e (a:b:_) = e a b
-evalBinary _ _       = wrongNumberOfArgs
+evalBinary e (a:b:[]) = e a b
+evalBinary _ _        = wrongNumberOfArgs
 
     
 evalDiv :: Form -> Form -> Either String Form
@@ -65,10 +77,23 @@ evalIf (exp : thenForm : elseForm : _ ) = do
   e <- eval exp
   eval $ if e /= nil then thenForm else elseForm
     
-evalIf (exp : thenForm : [] ) = do
-  evalIf [exp, thenForm, nil]
-  
+evalIf (exp : thenForm : [] ) = evalIf [exp, thenForm, nil]
 evalIf _ = wrongNumberOfArgs
+
+
+evalCons :: Form -> Form -> Either String Form
+evalCons h t = do
+  h' <- eval h
+  t' <- eval t
+  return $ Cons h' t'
+
+
+evalCar :: Form -> Either String Form
+evalCar f = eval f >>= cons >>= \(h, _) -> return h
+
+
+evalCdr :: Form -> Either String Form
+evalCdr f = eval f >>= cons >>= \(_, t) -> return t
 
 
 wrongNumberOfArgs :: Either String Form
