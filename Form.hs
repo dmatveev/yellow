@@ -9,6 +9,7 @@ type Operation = String
 data Form = Symbol String
           | StringLiteral String 
           | NumericLiteral Double
+          | BooleanLiteral Bool
           | SExpr Operation [Form]
             deriving (Eq, Show)
                      
@@ -17,6 +18,7 @@ parseForm :: Parser Form
 parseForm =   parseSymbol
           <|> parseString
           <|> parseNumber
+          <|> parseBool
           <|> parseSExpr
 
 
@@ -39,6 +41,12 @@ parseNumber = do
   i <- many1 digit
   return $ NumericLiteral $ read i
   
+
+parseBool :: Parser Form
+parseBool = do
+  s <- string "t" <|> string "nil"
+  return $ BooleanLiteral $ s == "t"
+
   
 parseSExpr :: Parser Form
 parseSExpr = do
@@ -71,7 +79,10 @@ parseTree s = case parse parseForm "" s of
   (Left err) -> fail $ show err
   (Right f)  -> return f
   
-  
+
+nil :: Form
+nil = BooleanLiteral False
+
 numeric :: Form -> Either String Double
 numeric (NumericLiteral i) = return i
 numeric _                  = Left "number expected"
