@@ -17,14 +17,14 @@ eval' s = do
     
 evalSExpr :: Operation -> [Form] -> Either String Form
 evalSExpr op = case op of
-    "+"    -> evalArith (+)
-    "-"    -> evalArith (-)
-    "*"    -> evalArith (*)
+    "+"    -> eval1Plus $ evalArith (+)
+    "*"    -> eval1Plus $ evalArith (*)
+    "-"    -> eval1Plus evalSubst
     
     "/"    -> evalBinary evalDiv
     "="    -> evalBinary evalEqual
     
-    "if"   -> evalIf
+    "if"   -> eval1Plus evalIf
     
     "cons" -> evalBinary evalCons
     "car"  -> evalUnary  evalCar
@@ -42,6 +42,13 @@ evalArith f (arg : args) = do
   return $ NumericLiteral $ f left right
 
 
+evalSubst :: [Form] -> Either String Form
+evalSubst [a]    = negated =<< eval a
+evalSubst (a:fs) = do
+  l <- numeric =<< eval a
+  r <- numeric =<< evalArith (+) fs
+  return $ NumericLiteral $ l - r
+
 
 evalUnary :: (Form -> Either String Form)
           -> [Form]
@@ -56,7 +63,14 @@ evalBinary :: (Form -> Form -> Either String Form)
 evalBinary e (a:b:[]) = e a b
 evalBinary _ _        = wrongNumberOfArgs
 
-    
+
+eval1Plus :: ([Form] -> Either String Form)
+          -> [Form]
+          -> Either String Form
+eval1Plus _ [] = wrongNumberOfArgs
+eval1Plus e xs = e xs
+
+  
 evalDiv :: Form -> Form -> Either String Form
 evalDiv a b = do
   a' <- numeric =<< eval a 
@@ -78,6 +92,12 @@ evalIf (exp : thenForm : elseForm : _ ) = do
     
 evalIf (exp : thenForm : [] ) = evalIf [exp, thenForm, nil]
 evalIf _ = wrongNumberOfArgs
+
+
+negated :: Form -> Either String Form
+negated f = do
+  i <- numeric =<< eval f
+  return $ NumericLiteral $ 0 - i
 
 
 evalCons :: Form -> Form -> Either String Form
