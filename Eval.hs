@@ -34,6 +34,9 @@ evalSExpr op = case op of
     "car"  -> evalUnary  evalCar
     "cdr"  -> evalUnary  evalCdr
 
+    "and"  -> evalAndOr True
+    "or"   -> evalAndOr False
+
 
 evalArith :: (Double -> Double -> Double) -> [Form] -> Either EvalError Form
 evalArith f (arg : []) = do
@@ -98,6 +101,16 @@ evalIf (exp : thenForm : [] ) = evalIf [exp, thenForm, nil]
 evalIf _ = wrongNumberOfArgs
 
 
+evalAndOr :: Bool -> [Form] -> Either EvalError Form
+evalAndOr continueValue forms =
+  case forms of
+   []     -> return $ BooleanLiteral continueValue
+   (f:fs) -> do left <- boolean =<< eval f
+                if left == continueValue
+                then evalAndOr continueValue fs
+                else return $ BooleanLiteral $ not continueValue
+
+
 negated :: Form -> Either EvalError Form
 negated f = do
   i <- numeric =<< eval f
@@ -126,6 +139,11 @@ wrongNumberOfArgs = Left $ EvalError "wrong number of arguments"
 numeric :: Form -> Either EvalError Double
 numeric (NumericLiteral i) = return i
 numeric _                  = Left $ EvalError "number expected"
+
+
+boolean :: Form -> Either EvalError Bool
+boolean (BooleanLiteral b) = return b
+boolean _                  = Left $ EvalError "boolean expected"
 
 
 cons :: Form -> Either EvalError (Form, Form)
