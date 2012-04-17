@@ -37,6 +37,11 @@ evalSExpr op = case op of
     "and"  -> evalAndOr True
     "or"   -> evalAndOr False
 
+    ">"    -> evalBinary $ evalRelation (>)
+    "<"    -> evalBinary $ evalRelation (<)
+    ">="   -> evalBinary $ evalRelation (>=)
+    "<="   -> evalBinary $ evalRelation (<=)
+
 
 evalArith :: (Double -> Double -> Double) -> [Form] -> Either EvalError Form
 evalArith f (arg : []) = do
@@ -90,6 +95,16 @@ evalEqual a b = do
   a' <- eval a
   b' <- eval b
   return $ BooleanLiteral $ a' == b'
+
+
+evalRelation :: (Double -> Double -> Bool)
+             -> Form
+             -> Form
+             -> Either EvalError Form
+evalRelation op a b = do
+  left  <- numeric =<< eval a
+  right <- numeric =<< eval b
+  return $ BooleanLiteral (op left right)
   
   
 evalIf :: [Form] -> Either EvalError Form

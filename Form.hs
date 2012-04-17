@@ -78,6 +78,10 @@ parseOperation =   string "+"
                <|> string "*"
                <|> string "/"
                <|> string "="
+               <|> string ">="
+               <|> string "<="
+               <|> string ">"
+               <|> string "<"
                <|> parseIdentifier
 
   
