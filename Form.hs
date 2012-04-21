@@ -78,11 +78,18 @@ parseOperation =   string "+"
                <|> string "*"
                <|> string "/"
                <|> string "="
-               <|> string ">="
-               <|> string "<="
-               <|> string ">"
-               <|> string "<"
+               <|> parseRelation
                <|> parseIdentifier
+               
+
+parseRelation :: Parser String
+parseRelation = do
+  s <- char '>' <|> char '<'
+  e <- optionMaybe (char '=')
+  let p = case e of
+           Nothing -> []
+           Just eq -> [eq]
+  return $ s : p
 
   
 parseIdentifier :: Parser String

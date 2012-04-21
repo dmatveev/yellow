@@ -45,7 +45,7 @@ iteration = do
   case eval' source of
      (Left (EvalError e)) ->  do lift $ putStrLn $ "Error: " ++ show e
                                  reset
-     (Left (ParseError _)) -> do continue source
+     (Left (ParseError e)) -> do continue source
      (Right v)             -> do reset
                                  lift $ putStrLn $ show v
   iteration
